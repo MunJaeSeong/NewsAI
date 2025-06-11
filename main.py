@@ -18,7 +18,12 @@ NewsMind AI - 뉴스 분석 웹 애플리케이션
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 import uvicorn
+
+from dotenv import load_dotenv
 from router import router
+from routers import search, summation, sentiment
+
+load_dotenv() # .env 파일 로드
 
 app = FastAPI(title="NewsMind AI", description="뉴스 분석 AI 서비스")
 
@@ -27,6 +32,9 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 
 # 라우터 연결
 app.include_router(router)
+app.include_router(search.router, prefix="/search", tags=["Search"])
+app.include_router(summation.router, prefix="/summarize", tags=["Summation"])
+app.include_router(sentiment.router, prefix="/sentiment", tags=["Sentiment Analysis"])
 
 if __name__ == '__main__':
     print("뉴스 분석 AI 서비스 시작...")
