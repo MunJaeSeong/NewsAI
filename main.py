@@ -15,6 +15,7 @@ NewsMind AI - 뉴스 분석 웹 애플리케이션
    - 감성별 뉴스 개수 표시
 """
 
+from pathlib import Path
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 import uvicorn
