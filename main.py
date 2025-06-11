@@ -15,18 +15,24 @@ NewsMind AI - 뉴스 분석 웹 애플리케이션
    - 감성별 뉴스 개수 표시
 """
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
-import uvicorn
-from router import router
+from fastapi.responses import HTMLResponse
 
 app = FastAPI(title="NewsMind AI", description="뉴스 분석 AI 서비스")
 
 # 정적 파일 설정
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
-# 라우터 연결
-app.include_router(router)
+@app.get("/", response_class=HTMLResponse)
+async def index(request: Request):
+    """메인 페이지 - 단순 HTML 파일 제공"""
+    with open('templates/index.html', 'r', encoding='utf-8') as f:
+        html_content = f.read()
+    return HTMLResponse(content=html_content)
+
+# 라우터 연결 주석 처리
+# app.include_router(router)
 
 if __name__ == '__main__':
     print("뉴스 분석 AI 서비스 시작...")
