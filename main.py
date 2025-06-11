@@ -1,23 +1,42 @@
-from fastapi import FastAPI
-from dotenv import load_dotenv
-import os
+"""
+NewsMind AI - 뉴스 분석 웹 애플리케이션
 
-# 각 라우터를 임포트합니다.
+이 애플리케이션은 다음과 같은 기능을 제공합니다:
+1. 뉴스 데이터 표시 및 필터링
+   - 날짜순으로 뉴스 정렬
+   - 감성(긍정/부정/중립)별 필터링
+2. 회사 정보 관리
+   - 관심 회사 목록 조회
+3. 검색 기능
+   - 뉴스 검색
+   - 검색 기록 관리
+4. 감성 분석
+   - 뉴스의 감성을 긍정/부정/중립으로 분류
+   - 감성별 뉴스 개수 표시
+"""
+
+from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
+import uvicorn
+
+from dotenv import load_dotenv
+from router import router
 from routers import search, summation, sentiment
 
 load_dotenv() # .env 파일 로드
 
-app = FastAPI(
-    title="News Analysis API",
-    description="뉴스 검색, 요약, 감성 분석을 제공하는 통합 API",
-    version="1.0.0"
-)
+app = FastAPI(title="NewsMind AI", description="뉴스 분석 AI 서비스")
 
-# 각 라우터를 메인 앱에 포함시킵니다.
+# 정적 파일 설정
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
+# 라우터 연결
+app.include_router(router)
 app.include_router(search.router, prefix="/search", tags=["Search"])
 app.include_router(summation.router, prefix="/summarize", tags=["Summation"])
 app.include_router(sentiment.router, prefix="/sentiment", tags=["Sentiment Analysis"])
 
-@app.get("/")
-async def root():
-    return {"message": "Welcome to the News Analysis API. Check /docs for API documentation."}
+if __name__ == '__main__':
+    print("뉴스 분석 AI 서비스 시작...")
+    print("http://localhost:8000 에서 확인하세요")
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True) 
