@@ -1,28 +1,30 @@
-from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
 from transformers import pipeline
-from typing import Dict, List
+from typing import Dict
 
-app = FastAPI(title="SentimentAI API", description="한국어 금융 텍스트 감성 분석 API")
+# 모델은 한 번만 로드되도록 전역 변수로 유지
+sentiment_analyzer = None
 
-# 한국어 금융 감성 분석 모델 로드
-sentiment_analyzer = pipeline("text-classification", model="snunlp/KR-FinBert-SC")
+def load_sentiment_model():
+    global sentiment_analyzer
+    if sentiment_analyzer is None:
+        try:
+            sentiment_analyzer = pipeline("text-classification", model="snunlp/KR-FinBert-SC")
+        except Exception as e:
+            print(f"감성 분석 모델 로드 중 에러 발생: {e}")
+            sentiment_analyzer = None
+            raise
 
-class TextInput(BaseModel):
-    text: str
+def analyze_financial_sentiment(text: str) -> Dict:
+    if sentiment_analyzer is None:
+        raise ValueError("감성 분석 모델이 로드되지 않았습니다. 서버 초기화를 확인해주세요.")
 
-def analyze_sentiment(text: str) -> Dict:
-    # 감성 분석 실행
     sentiment_result = sentiment_analyzer(text)
     
-    # 모델의 원본 감성 레이블과 신뢰도
     original_label = sentiment_result[0]['label'].lower()
     score = sentiment_result[0]['score']
     
-    # 최종적으로 반환할 감성 레이블
     final_korean_label = ""
     
-    # 감성 후처리 로직
     if score < 0.5:
         final_korean_label = '중립'
     else:
@@ -46,7 +48,7 @@ def analyze_sentiment(text: str) -> Dict:
             else:
                 final_korean_label = '중립'
         else:
-            final_korean_label = original_label
+            final_korean_label = original_label # 예외 케이스
     
     return {
         "original_sentiment": original_label.capitalize(),
@@ -55,14 +57,5 @@ def analyze_sentiment(text: str) -> Dict:
         "input_text": text
     }
 
-@app.post("/analyze", response_model=Dict)
-async def analyze_text(text_input: TextInput):
-    try:
-        result = analyze_sentiment(text_input.text)
-        return result
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-@app.get("/")
-async def root():
-    return {"message": "Welcome to SentimentAI API. Use POST /analyze endpoint with text input to analyze sentiment."} 
+# 서버 시작 시 모델을 미리 로드하도록 함수 호출
+load_sentiment_model()
