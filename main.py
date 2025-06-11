@@ -18,17 +18,27 @@ NewsMind AI - 뉴스 분석 웹 애플리케이션
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 import uvicorn
-from router import router
+from router import router, Request
+from fastapi.responses import HTMLResponse
 
 app = FastAPI(title="NewsMind AI", description="뉴스 분석 AI 서비스")
-
-# 정적 파일 설정
-app.mount("/static", StaticFiles(directory="static"), name="static")
 
 # 라우터 연결
 app.include_router(router)
 
-if __name__ == '__main__':
-    print("뉴스 분석 AI 서비스 시작...")
-    print("http://localhost:8000 에서 확인하세요")
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True) 
+# 정적 파일 서빙 설정
+# app.mount("/static", StaticFiles(directory="static"), name="static")
+
+async def read_root(request: Request):
+    """
+    루트 경로에 대한 GET 요청을 처리합니다.
+    기본 HTML 페이지를 반환합니다.
+    """
+    # HTML 파일 경로 설정
+    html_file_path = Path(__file__).parent / "index.html"
+    
+    # HTML 파일 읽기
+    with open(html_file_path, "r", encoding="utf-8") as file:
+        content = file.read()
+    
+    return HTMLResponse(content=content)
