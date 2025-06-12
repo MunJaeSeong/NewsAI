@@ -12,7 +12,7 @@ async def fetch_news_from_naver(query: str) -> dict:
         raise ValueError("네이버 API 인증 정보가 설정되지 않았습니다.")
 
     encText = urllib.parse.quote(query)
-    url = f"https://openapi.naver.com/v1/search/news?query={encText}&display=20&sort=sim" # 최대 100개
+    url = f"https://openapi.naver.com/v1/search/news?query={encText}&display=50&sort=sim" # 최대 100개
 
     request = urllib.request.Request(url)
     request.add_header("X-Naver-Client-Id", client_id)

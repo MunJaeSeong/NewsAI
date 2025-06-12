@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException
-from schemas.search import SearchQuery, SearchResponse # 스키마 임포트
+from schemas.search_schema import SearchQuery, SearchResponse # 스키마 임포트
 from services import search_service # 서비스 임포트
 
 router = APIRouter()

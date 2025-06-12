@@ -1,7 +1,7 @@
+# NEWSIAI/services/summation_service.py
 from transformers import pipeline
 from typing import List, Dict, Optional
 
-# 모델은 한 번만 로드되도록 전역 변수로 유지
 classifier = None
 
 def load_summarization_model():
@@ -9,6 +9,7 @@ def load_summarization_model():
     if classifier is None:
         try:
             classifier = pipeline("summarization", "eenzeenee/t5-base-korean-summarization", device='cpu')
+            print("요약 모델 로드 완료!") # 모델 로드 성공 시 메시지
         except Exception as e:
             print(f"요약 모델 로드 중 에러 발생: {e}")
             classifier = None
@@ -16,7 +17,7 @@ def load_summarization_model():
 
 async def get_summaries(texts: List[str]) -> List[Dict]:
     if classifier is None:
-        raise ValueError("요약 모델이 로드되지 않았습니다. 서버 초기화를 확인해주세요.")
+        raise ValueError("요약 모델이 로드되지 않았습니다. 서버 초기화 로그를 확인해주세요.")
     
     summaries = []
     for text_item in texts:
@@ -40,7 +41,3 @@ async def get_summaries(texts: List[str]) -> List[Dict]:
                 "error": f"요약 중 에러 발생: {str(e)}"
             })
     return summaries
-
-# 서버 시작 시 모델을 미리 로드하도록 함수 호출
-# (main.py에서 앱 시작 시 호출하는 것이 더 명확하지만, 여기서는 서비스 파일 자체에서 로드 시도)
-load_summarization_model()

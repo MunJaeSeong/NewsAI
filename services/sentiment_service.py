@@ -1,7 +1,7 @@
+# NEWSIAI/services/sentiment_service.py
 from transformers import pipeline
 from typing import Dict
 
-# 모델은 한 번만 로드되도록 전역 변수로 유지
 sentiment_analyzer = None
 
 def load_sentiment_model():
@@ -9,6 +9,7 @@ def load_sentiment_model():
     if sentiment_analyzer is None:
         try:
             sentiment_analyzer = pipeline("text-classification", model="snunlp/KR-FinBert-SC")
+            print("감성 분석 모델 로드 완료!") # 모델 로드 성공 시 메시지
         except Exception as e:
             print(f"감성 분석 모델 로드 중 에러 발생: {e}")
             sentiment_analyzer = None
@@ -48,7 +49,7 @@ def analyze_financial_sentiment(text: str) -> Dict:
             else:
                 final_korean_label = '중립'
         else:
-            final_korean_label = original_label # 예외 케이스
+            final_korean_label = original_label
     
     return {
         "original_sentiment": original_label.capitalize(),
@@ -57,5 +58,5 @@ def analyze_financial_sentiment(text: str) -> Dict:
         "input_text": text
     }
 
-# 서버 시작 시 모델을 미리 로드하도록 함수 호출
-load_sentiment_model()
+# 이 부분은 main.py의 startup 이벤트에서 호출되므로 제거해도 됩니다.
+# load_sentiment_model()
