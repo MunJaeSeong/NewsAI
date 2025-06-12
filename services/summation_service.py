@@ -14,7 +14,7 @@ def load_summarization_model():
             print(f"요약 모델 로드 중 에러 발생: {e}")
             classifier = None
             raise
-
+            
 async def get_summaries(texts: List[str]) -> List[Dict]:
     if classifier is None:
         raise ValueError("요약 모델이 로드되지 않았습니다. 서버 초기화 로그를 확인해주세요.")

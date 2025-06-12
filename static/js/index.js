@@ -12,11 +12,9 @@ const neutralCountElement = document.getElementById('neutral-count');
 
 /**
  * 초기 데이터 로드 함수 (API 호출로 대체)
+ * 이 함수는 초기 상태 설정 용도로만 사용됩니다.
  */
 async function loadData() {
-    // 페이지 로드 시에는 API 호출을 하지 않고, 검색 버튼 클릭 시 호출하도록 변경.
-    // 따라서 이 함수는 빈 상태로 두거나 제거해도 무방합니다.
-    // 기존의 sampleNews는 더 이상 사용되지 않습니다.
     displayNews([]); // 초기에는 뉴스 목록을 비워둡니다.
     displaySentimentCounts(0, 0, 0); // 초기 감성 카운트도 0으로 설정
 }
@@ -28,16 +26,11 @@ async function loadData() {
 function displayNews(news) {
     const container = newsListContainer; // 전역 변수 사용
     // 날짜순으로 정렬 (최신순)
-    const sortedNews = [...news].sort((a, b) =>
+    const sortedNews = [...news].sort((a, b) => 
         new Date(b.published_date) - new Date(a.published_date)
     );
-
-    // 각 뉴스 항목을 카드 형태로 렌더링
-    if (sortedNews.length === 0) {
-        container.innerHTML = '<p class="text-center text-gray-500 py-10">검색 결과가 없습니다. 새로운 검색어를 입력해주세요.</p>';
-        return;
-    }
-
+    
+    // 이전에 표시된 뉴스를 지우고 다시 그립니다.
     container.innerHTML = sortedNews.map(item => `
         <div class="bg-white rounded-lg shadow p-6 mb-4">
             <div class="flex justify-between items-start mb-3">
@@ -48,37 +41,16 @@ function displayNews(news) {
             </div>
             <h2 class="text-lg font-bold mb-2">${item.title}</h2>
             <p class="text-gray-700 mb-3">${item.summary}</p>
-            <div class="text-sm text-gray-500">
-                <span>${item.published_date}</span>
-            </div>
+            <p class="text-sm text-gray-500">${item.published_date}</p>
         </div>
     `).join('');
 }
 
 /**
- * 감성별 뉴스 필터링 함수
- * @param {string} sentiment - 필터링할 감성 ('positive', 'negative', 'neutral')
- */
-function filterNews(sentiment) {
-    currentFilter = sentiment;
-    const filteredNews = allNews.filter(item => item.sentiment_category === sentiment); // 백엔드 응답 키에 맞춤
-    displayNews(filteredNews);
-}
-
-/**
- * 필터 초기화 함수
- * 모든 뉴스를 다시 표시
- */
-function resetFilter() {
-    currentFilter = null;
-    displayNews(allNews);
-}
-
-/**
- * 감성별 뉴스 개수를 계산하고 표시하는 함수
- * @param {number} positiveCount - 긍정 뉴스 개수
- * @param {number} negativeCount - 부정 뉴스 개수
- * @param {number} neutralCount - 중립 뉴스 개수
+ * 감성별 뉴스 개수를 화면에 표시하는 함수
+ * @param {number} positiveCount - 긍정적 뉴스 개수
+ * @param {number} negativeCount - 부정적 뉴스 개수
+ * @param {number} neutralCount - 중립적 뉴스 개수
  */
 function displaySentimentCounts(positiveCount, negativeCount, neutralCount) {
     positiveCountElement.textContent = `${positiveCount}개`;
@@ -86,176 +58,198 @@ function displaySentimentCounts(positiveCount, negativeCount, neutralCount) {
     neutralCountElement.textContent = `${neutralCount}개`;
 }
 
+/**
+ * 감성 필터링 함수
+ * @param {string} sentiment - 'positive', 'negative', 'neutral' 또는 null (전체)
+ */
+function filterNews(sentiment) {
+    currentFilter = sentiment;
+    let filteredNews = [];
+    if (sentiment) {
+        filteredNews = allNews.filter(item => item.sentiment_category === sentiment);
+    } else {
+        filteredNews = allNews;
+    }
+    displayNews(filteredNews);
+}
 
 /**
- * 감성에 따른 CSS 클래스 반환 함수
- * @param {string} sentiment - 감성 ('positive', 'negative', 'neutral')
+ * 필터 초기화 (전체 보기) 함수
+ */
+function resetFilter() {
+    filterNews(null);
+}
+
+/**
+ * 감성에 따른 Tailwind CSS 색상 클래스 반환 함수
+ * @param {string} sentiment - 감성 ('긍정', '부정', '중립')
  * @returns {string} - Tailwind CSS 클래스 문자열
  */
 function getSentimentColor(sentiment) {
     switch(sentiment) {
-        case 'positive': return 'bg-green-100 text-green-800';
-        case 'negative': return 'bg-red-100 text-red-800';
-        case 'neutral': return 'bg-gray-100 text-gray-800'; // 중립도 명시적으로 추가
-        default: return 'bg-gray-100 text-gray-800'; // 알 수 없는 경우 대비
+        case '긍정': return 'bg-green-100 text-green-800';
+        case '부정': return 'bg-red-100 text-red-800';
+        default: return 'bg-gray-100 text-gray-800';
     }
 }
 
 /**
  * 감성에 따른 한글 텍스트 반환 함수
- * @param {string} sentiment - 감성 ('positive', 'negative', 'neutral')
+ * @param {string} sentiment - 감성 ('긍정', '부정', '중립')
  * @returns {string} - 한글 감성 텍스트
  */
 function getSentimentText(sentiment) {
     switch(sentiment) {
-        case 'positive': return '긍정적';
-        case 'negative': return '부정적';
-        case 'neutral': return '중립적'; // 중립도 명시적으로 추가
-        default: return '알 수 없음';
+        case '긍정': return '긍정적';
+        case '부정': return '부정적';
+        default: return '중립적';
     }
 }
 
 /**
- * 뉴스 검색 및 분석을 위한 API 호출 함수
+ * 뉴스 검색 함수 (백엔드 API 호출 포함)
+ * 이 함수가 실제로 검색을 수행하고 결과를 화면에 표시합니다.
  */
-async function searchNews() {
-    const query = searchInput.value.trim();
-    if (!query) {
-        alert('검색어를 입력해주세요.');
+async function processSearchResults() { // searchTerm 인자를 제거하고 searchInput.value를 직접 사용
+    const searchTerm = searchInput.value.trim(); // searchInput 전역 변수 사용
+    if (!searchTerm) {
+        alert("검색어를 입력해주세요.");
         return;
     }
 
-    newsListContainer.innerHTML = '<p class="text-center text-gray-500 py-10">뉴스 검색 및 분석 중...</p>';
-    displaySentimentCounts(0, 0, 0); // 새로운 검색 시작 시 카운터 초기화
+    newsListContainer.innerHTML = `<p class="text-center text-gray-500 py-10">뉴스 검색 중...</p>`;
+    displaySentimentCounts(0, 0, 0); // 검색 시작 시 카운트 초기화
+    allNews = []; // 모든 뉴스 배열 초기화 (가장 중요!)
 
     try {
         // 1. 검색 API 호출
-        const searchResponse = await fetch('/api/search/', { // main.py에서 prefix가 /api/search로 변경됨
+        const searchUrl = `/api/search/`;
+        const searchPayload = { query: searchTerm };
+        const searchResponse = await fetch(searchUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ query: query })
+            body: JSON.stringify(searchPayload)
         });
 
         if (!searchResponse.ok) {
-            const errorData = await searchResponse.json();
-            throw new Error(`검색 API 에러: ${errorData.detail || searchResponse.statusText}`);
+            throw new Error(`검색 API 에러: ${searchResponse.status}`);
         }
         const searchData = await searchResponse.json();
 
-        // 네이버 뉴스 API 응답 구조를 직접 처리
-        const newsItems = searchData.data.items || [];
-        if (newsItems.length === 0) {
-            newsListContainer.innerHTML = '<p class="text-center text-gray-500 py-10">검색 결과가 없습니다.</p>';
-            return;
-        }
+        if (searchData.status === 'success' && searchData.data && searchData.data.items) {
+            const naverNewsItems = searchData.data.items;
+            const descriptions = naverNewsItems.map(item => item.description);
 
-        const descriptions = newsItems.map(item => item.description);
-        const titles = newsItems.map(item => item.title);
-        const originalLinks = newsItems.map(item => item.originallink);
-        const pubDates = newsItems.map(item => item.pubDate);
+            if (descriptions.length > 0) {
+                // 2. 요약 API 호출
+                const summarizeUrl = `/api/summarize/multiple`;
+                const summarizePayload = { texts: descriptions };
+                const summarizeResponse = await fetch(summarizeUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(summarizePayload)
+                });
 
-        // 2. 요약 API 호출 (모든 description을 한 번에 전송)
-        const summarizeResponse = await fetch('/api/summarize/multiple', { // main.py에서 prefix가 /api/summarize로 변경됨
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ texts: descriptions })
-        });
-
-        if (!summarizeResponse.ok) {
-            const errorData = await summarizeResponse.json();
-            throw new Error(`요약 API 에러: ${errorData.detail || summarizeResponse.statusText}`);
-        }
-        const summarizedData = await summarizeResponse.json();
-
-        if (summarizedData.status !== 'success' || !summarizedData.summaries) {
-            throw new Error('요약 결과를 가져오지 못했습니다.');
-        }
-
-        let positiveCount = 0;
-        let negativeCount = 0;
-        let neutralCount = 0;
-        allNews = []; // 전역 뉴스 데이터 초기화
-
-        // 3. 각 요약된 텍스트에 대해 감성 분석 API 호출 및 데이터 취합
-        for (let i = 0; i < summarizedData.summaries.length; i++) {
-            const summarizedItem = summarizedData.summaries[i];
-            const originalText = summarizedItem.original_text;
-            const summaryText = summarizedItem.summary;
-            const newsTitle = titles[i]; // 원본 뉴스 제목
-            const newsLink = originalLinks[i]; // 원본 뉴스 링크 (사용하려면 HTML 템플릿에 추가)
-            const newsPubDate = pubDates[i]; // 원본 뉴스 발행일 (사용하려면 HTML 템플릿에 추가)
-
-            let sentimentCategory = 'neutral'; // 기본값
-
-            if (summaryText) {
-                try {
-                    const sentimentResponse = await fetch('/api/sentiment/analyze', { // main.py에서 prefix가 /api/sentiment로 변경됨
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ text: summaryText })
-                    });
-
-                    if (!sentimentResponse.ok) {
-                        const errorData = await sentimentResponse.json();
-                        throw new Error(`감성 분석 API 에러: ${errorData.detail || sentimentResponse.statusText}`);
-                    }
-                    const sentimentData = await sentimentResponse.json();
-
-                    // Python 백엔드의 'final_sentiment' 키를 사용 (긍정, 부정, 중립 등 한글)
-                    const finalSentiment = sentimentData.final_sentiment;
-
-                    // 감성 카운트 및 카테고리 설정
-                    if (finalSentiment.includes("긍정")) {
-                        positiveCount++;
-                        sentimentCategory = 'positive';
-                    } else if (finalSentiment.includes("부정")) {
-                        negativeCount++;
-                        sentimentCategory = 'negative';
-                    } else if (finalSentiment.includes("중립")) {
-                        neutralCount++;
-                        sentimentCategory = 'neutral';
-                    }
-
-                } catch (sentimentError) {
-                    console.error("감성 분석 실패:", sentimentError);
-                    // 감성 분석 실패 시에도 중립으로 처리
-                    sentimentCategory = 'neutral';
+                if (!summarizeResponse.ok) {
+                    throw new Error(`요약 API 에러: ${summarizeResponse.status}`);
                 }
+                const summarizedData = await summarizeResponse.json();
+
+                let positiveCount = 0;
+                let negativeCount = 0;
+                let neutralCount = 0;
+
+                if (summarizedData.status === 'success' && summarizedData.summaries) {
+                    for (let i = 0; i < naverNewsItems.length; i++) {
+                        const newsItem = naverNewsItems[i];
+                        const newsTitle = newsItem.title;
+                        const originalText = newsItem.description;
+                        const newsPubDate = newsItem.pubDate;
+
+                        const summaryItem = summarizedData.summaries[i];
+                        const summaryText = summaryItem ? summaryItem.summary : null;
+
+                        let sentimentCategory = '중립'; // 기본값
+
+                        if (summaryText) { // 요약이 성공했을 경우에만 감성 분석
+                            // 3. 감성 분석 API 호출 (요약된 텍스트 사용)
+                            const sentimentUrl = `/api/sentiment/analyze`;
+                            const sentimentPayload = { text: summaryText };
+                            const sentimentResponse = await fetch(sentimentUrl, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify(sentimentPayload)
+                            });
+
+                            if (sentimentResponse.ok) {
+                                const sentimentData = await sentimentResponse.json();
+                                // 백엔드의 final_sentiment 결과값에 따라 카테고리 설정
+                                if (sentimentData.final_sentiment.includes('긍정')) { // '긍정 (중립에서 조정됨)' 포함 가능성
+                                    sentimentCategory = '긍정';
+                                    positiveCount++;
+                                } else if (sentimentData.final_sentiment.includes('부정')) { // '부정 (중립에서 조정됨)', '부정 (혼합 감성)' 포함 가능성
+                                    sentimentCategory = '부정';
+                                    negativeCount++;
+                                } else {
+                                    sentimentCategory = '중립';
+                                    neutralCount++;
+                                }
+                            } else {
+                                console.warn(`감성 분석 API 호출 실패 (${sentimentResponse.status}): 요약된 텍스트에 대해 중립 처리`);
+                                neutralCount++;
+                            }
+                        } else {
+                            console.warn(`요약 실패: ${summaryItem ? summaryItem.error : '알 수 없는 오류'}. 원본 텍스트에 대해 중립 처리.`);
+                            neutralCount++;
+                        }
+                        
+                        // 전역 allNews 배열에 추가할 객체 구성
+                        allNews.push({
+                            company: "뉴스 기사", 
+                            title: newsTitle.replace(/<\/?b>/g, ''), 
+                            summary: summaryText || originalText.replace(/<\/?b>/g, ''), 
+                            published_date: new Date(newsPubDate).toLocaleDateString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit' }).replace(/\. /g, '.').replace(/\.$/, ''), 
+                            sentiment_category: sentimentCategory 
+                        });
+                    }
+                } else {
+                    console.error("요약 API 응답 형식이 올바르지 않습니다.");
+                    newsListContainer.innerHTML = `<p class="text-center text-red-500 py-10">요약 결과를 처리할 수 없습니다.</p>`;
+                }
+                
+                displayNews(allNews); // 모든 뉴스 표시
+                displaySentimentCounts(positiveCount, negativeCount, neutralCount); // 감성 카운트 업데이트
+
             } else {
-                console.warn("요약 실패로 감성 분석을 수행할 수 없습니다.");
-                sentimentCategory = 'neutral'; // 요약 실패 시 중립으로 처리
+                newsListContainer.innerHTML = `<p class="text-center text-gray-500 py-10">검색어 '${searchTerm}'에 대한 뉴스를 찾을 수 없습니다.</p>`;
             }
-
-            // 전역 allNews 배열에 추가할 객체 구성
-            allNews.push({
-                company: "뉴스 기사", // 회사명 정보가 없으므로 임의로 "뉴스 기사"로 설정
-                title: newsTitle.replace(/<\/?b>/g, ''), // 제목에서 <b> 태그 제거
-                summary: summaryText || originalText.replace(/<\/?b>/g, ''), // 요약 없으면 원문 사용 (<b> 태그 제거)
-                published_date: new Date(newsPubDate).toLocaleDateString(), // 발행일 포맷팅
-                sentiment_category: sentimentCategory // 필터링을 위한 카테고리
-            });
+        } else {
+            newsListContainer.innerHTML = `<p class="text-center text-red-500 py-10">검색 결과를 가져오는 데 실패했습니다.</p>`;
         }
-
-        displayNews(allNews); // 모든 뉴스 표시
-        displaySentimentCounts(positiveCount, negativeCount, neutralCount); // 감성 카운트 업데이트
-
     } catch (error) {
         console.error("전체 프로세스 에러:", error);
         newsListContainer.innerHTML = `<p class="text-center text-red-500 py-10">오류 발생: ${error.message}</p>`;
     }
 }
 
-// 페이지 로드 시 초기화
+// 페이지 로드 시 초기화 및 이벤트 리스너 설정
 document.addEventListener('DOMContentLoaded', () => {
-    loadData(); // 초기 데이터 로드 (현재는 빈 값으로 시작)
+    loadData(); 
+    
+    // 검색 버튼 클릭 이벤트 리스너 (processSearchResults 호출로 변경)
+    document.getElementById('search-button').addEventListener('click', () => {
+        processSearchResults();
+    });
 
-    // 검색 입력 필드에 엔터키 이벤트 리스너 추가
-    searchInput.addEventListener('keydown', (e) => {
+    // 엔터 키 이벤트 리스너 (input 필드에서 엔터 입력 시 검색)
+    document.getElementById('search-input').addEventListener('keypress', (e) => {
         if (e.key === 'Enter') {
-            searchNews();
+            e.preventDefault(); // 기본 Enter 동작(폼 제출 등) 방지
+            processSearchResults();
         }
     });
 
-    // 검색 버튼 클릭 이벤트 리스너
-    document.querySelector('button[onclick="searchNews()"]').addEventListener('click', searchNews);
+    // 필터링 버튼 이벤트 리스너 (HTML onclick은 그대로 유지)
+    // 예시: document.getElementById('positive-filter-button').addEventListener('click', () => filterNews('긍정'));
+    // HTML에 onclick="filterNews('긍정')" 등이 있다면 JS에서 따로 추가할 필요 없음.
 });
