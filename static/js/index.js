@@ -163,10 +163,7 @@ async function handleLogout() {
     }
 }
 
-// 페이지 로드 시 초기화
-document.addEventListener('DOMContentLoaded', async () => {
-    await checkLoginStatus(); // 로그인 상태 확인
-=======
+
     }
 }
 
@@ -299,6 +296,8 @@ async function searchNews() {
         newsListContainer.innerHTML = `<p class="text-center text-red-500 py-10">오류 발생: ${error.message}</p>`;
     }
 }
+
+document.addEventListener('DOMContentLoaded', () => {
     loadData(); // 초기 데이터 로드 (현재는 빈 값으로 시작)
 
     // 검색 입력 필드에 엔터키 이벤트 리스너 추가
