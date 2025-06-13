@@ -38,8 +38,8 @@ function displayNews(news) {
         return;
     }
 
-    container.innerHTML = sortedNews.map(item => `
-        <div class="bg-white rounded-lg shadow p-6 mb-4">
+    container.innerHTML = sortedNews.map((item, idx) => `
+        <div class="bg-white rounded-lg shadow p-6 mb-4 cursor-pointer" onclick="onNewsClick(${idx})">
             <div class="flex justify-between items-start mb-3">
                 <h3 class="font-semibold text-gray-900">${item.company}</h3>
                 <span class="px-2 py-1 text-xs rounded-full ${getSentimentColor(item.sentiment_category)}">
@@ -53,6 +53,12 @@ function displayNews(news) {
             </div>
         </div>
     `).join('');
+}
+
+// 뉴스 카드 클릭 시 동작 함수 (예시: 전체 정보 alert)
+function onNewsClick(idx) {
+    const item = allNews[idx];
+    alert(`제목: ${item.title}\n회사: ${item.company}\n날짜: ${item.published_date}\n요약: ${item.summary}`);
 }
 
 /**
