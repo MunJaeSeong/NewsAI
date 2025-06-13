@@ -25,7 +25,8 @@ from typing import Optional, List, Dict, Any
 import os
 import uvicorn
 from dotenv import load_dotenv
-import json
+from routers import url_router
+import os # os 모듈 임포트 추가
 
 # 라우터 임포트
 from routers import search_router, summation_router, sentiment_router, auth_router
@@ -70,10 +71,10 @@ async def startup_event():
 # -----------------------------------
 
 # 라우터 연결 (API 경로를 /api/{기능} 형태로 구성)
-app.include_router(search_router.router, prefix="/api/search", tags=["Search"])
-app.include_router(summation_router.router, prefix="/api/summarize", tags=["Summation"])
-app.include_router(sentiment_router.router, prefix="/api/sentiment", tags=["Sentiment Analysis"])
-app.include_router(auth_router.router, tags=["Authentication"])
+app.include_router(search_router.router, prefix="/search", tags=["Search"])
+app.include_router(summation_router.router, prefix="/summarize", tags=["Summation"])
+app.include_router(sentiment_router.router, prefix="/sentiment", tags=["Sentiment Analysis"])
+app.include_router(url_router.router, prefix="/url", tags=["URL Fetch"])
 
 # 루트 경로 ("/")로 접속 시 index.html 파일을 렌더링하여 반환
 @app.get("/")
