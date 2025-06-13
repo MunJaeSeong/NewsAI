@@ -296,13 +296,8 @@ function displayNews(news) {
     const sortedNews = [...news].sort((a, b) =>
         new Date(b.published_date) - new Date(a.published_date)
     );
-
-    // 각 뉴스 항목을 카드 형태로 렌더링
-    if (sortedNews.length === 0) {
-        container.innerHTML = '<p class="text-center text-gray-500 py-10">검색 결과가 없습니다. 새로운 검색어를 입력해주세요.</p>';
-        return;
-    }
-
+    
+    // 이전에 표시된 뉴스를 지우고 다시 그립니다.
     container.innerHTML = sortedNews.map(item => `
         <div class="bg-white rounded-lg shadow p-6 mb-4">
             <div class="flex justify-between items-start mb-3">
@@ -356,42 +351,61 @@ function displaySentimentCounts(positiveCount, negativeCount, neutralCount) {
     neutralCountElement.textContent = `${neutralCount}개`;
 }
 
+/**
+ * 감성 필터링 함수
+ * @param {string} sentiment - 'positive', 'negative', 'neutral' 또는 null (전체)
+ */
+function filterNews(sentiment) {
+    currentFilter = sentiment;
+    let filteredNews = [];
+    if (sentiment) {
+        filteredNews = allNews.filter(item => item.sentiment_category === sentiment);
+    } else {
+        filteredNews = allNews;
+    }
+    displayNews(filteredNews);
+}
 
 /**
- * 감성에 따른 CSS 클래스 반환 함수
- * @param {string} sentiment - 감성 ('positive', 'negative', 'neutral')
+ * 필터 초기화 (전체 보기) 함수
+ */
+function resetFilter() {
+    filterNews(null);
+}
+
+/**
+ * 감성에 따른 Tailwind CSS 색상 클래스 반환 함수
+ * @param {string} sentiment - 감성 ('긍정', '부정', '중립')
  * @returns {string} - Tailwind CSS 클래스 문자열
  */
 function getSentimentColor(sentiment) {
     switch(sentiment) {
-        case 'positive': return 'bg-green-100 text-green-800';
-        case 'negative': return 'bg-red-100 text-red-800';
-        case 'neutral': return 'bg-gray-100 text-gray-800'; // 중립도 명시적으로 추가
-        default: return 'bg-gray-100 text-gray-800'; // 알 수 없는 경우 대비
+        case '긍정': return 'bg-green-100 text-green-800';
+        case '부정': return 'bg-red-100 text-red-800';
+        default: return 'bg-gray-100 text-gray-800';
     }
 }
 
 /**
  * 감성에 따른 한글 텍스트 반환 함수
- * @param {string} sentiment - 감성 ('positive', 'negative', 'neutral')
+ * @param {string} sentiment - 감성 ('긍정', '부정', '중립')
  * @returns {string} - 한글 감성 텍스트
  */
 function getSentimentText(sentiment) {
     switch(sentiment) {
-        case 'positive': return '긍정적';
-        case 'negative': return '부정적';
-        case 'neutral': return '중립적'; // 중립도 명시적으로 추가
-        default: return '알 수 없음';
+        case '긍정': return '긍정적';
+        case '부정': return '부정적';
+        default: return '중립적';
     }
 }
 
 /**
  * 뉴스 검색 및 분석을 위한 API 호출 함수 (핵심 수정 부분)
  */
-async function searchNews() {
-    const query = searchInput.value.trim();
-    if (!query) {
-        alert('검색어를 입력해주세요.');
+async function processSearchResults() { // searchTerm 인자를 제거하고 searchInput.value를 직접 사용
+    const searchTerm = searchInput.value.trim(); // searchInput 전역 변수 사용
+    if (!searchTerm) {
+        alert("검색어를 입력해주세요.");
         return;
     }
 
@@ -406,12 +420,11 @@ async function searchNews() {
         const searchResponse = await fetch('/api/search', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ query: query })
+            body: JSON.stringify(searchPayload)
         });
 
         if (!searchResponse.ok) {
-            const errorData = await searchResponse.json();
-            throw new Error(`검색 API 에러: ${errorData.detail || searchResponse.statusText}`);
+            throw new Error(`검색 API 에러: ${searchResponse.status}`);
         }
         const searchData = await searchResponse.json();
         const newsItems = searchData.data.items || []; // `searchData.data` 아래에 `items`가 있다고 가정
@@ -498,6 +511,73 @@ async function searchNews() {
                         sentimentCategory = 'neutral';
                         break;
                 }
+                const summarizedData = await summarizeResponse.json();
+
+                let positiveCount = 0;
+                let negativeCount = 0;
+                let neutralCount = 0;
+
+                if (summarizedData.status === 'success' && summarizedData.summaries) {
+                    for (let i = 0; i < naverNewsItems.length; i++) {
+                        const newsItem = naverNewsItems[i];
+                        const newsTitle = newsItem.title;
+                        const originalText = newsItem.description;
+                        const newsPubDate = newsItem.pubDate;
+
+                        const summaryItem = summarizedData.summaries[i];
+                        const summaryText = summaryItem ? summaryItem.summary : null;
+
+                        let sentimentCategory = '중립'; // 기본값
+
+                        if (summaryText) { // 요약이 성공했을 경우에만 감성 분석
+                            // 3. 감성 분석 API 호출 (요약된 텍스트 사용)
+                            const sentimentUrl = `/api/sentiment/analyze`;
+                            const sentimentPayload = { text: summaryText };
+                            const sentimentResponse = await fetch(sentimentUrl, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify(sentimentPayload)
+                            });
+
+                            if (sentimentResponse.ok) {
+                                const sentimentData = await sentimentResponse.json();
+                                // 백엔드의 final_sentiment 결과값에 따라 카테고리 설정
+                                if (sentimentData.final_sentiment.includes('긍정')) { // '긍정 (중립에서 조정됨)' 포함 가능성
+                                    sentimentCategory = '긍정';
+                                    positiveCount++;
+                                } else if (sentimentData.final_sentiment.includes('부정')) { // '부정 (중립에서 조정됨)', '부정 (혼합 감성)' 포함 가능성
+                                    sentimentCategory = '부정';
+                                    negativeCount++;
+                                } else {
+                                    sentimentCategory = '중립';
+                                    neutralCount++;
+                                }
+                            } else {
+                                console.warn(`감성 분석 API 호출 실패 (${sentimentResponse.status}): 요약된 텍스트에 대해 중립 처리`);
+                                neutralCount++;
+                            }
+                        } else {
+                            console.warn(`요약 실패: ${summaryItem ? summaryItem.error : '알 수 없는 오류'}. 원본 텍스트에 대해 중립 처리.`);
+                            neutralCount++;
+                        }
+                        
+                        // 전역 allNews 배열에 추가할 객체 구성
+                        allNews.push({
+                            company: "뉴스 기사", 
+                            title: newsTitle.replace(/<\/?b>/g, ''), 
+                            summary: summaryText || originalText.replace(/<\/?b>/g, ''), 
+                            published_date: new Date(newsPubDate).toLocaleDateString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit' }).replace(/\. /g, '.').replace(/\.$/, ''), 
+                            sentiment_category: sentimentCategory 
+                        });
+                    }
+                } else {
+                    console.error("요약 API 응답 형식이 올바르지 않습니다.");
+                    newsListContainer.innerHTML = `<p class="text-center text-red-500 py-10">요약 결과를 처리할 수 없습니다.</p>`;
+                }
+                
+                displayNews(allNews); // 모든 뉴스 표시
+                displaySentimentCounts(positiveCount, negativeCount, neutralCount); // 감성 카운트 업데이트
+
             } else {
                 neutralCount++; // 감성 결과가 없는 경우도 중립으로 처리
             }
@@ -512,10 +592,6 @@ async function searchNews() {
                 sentiment_category: sentimentCategory
             });
         }
-
-        displayNews(allNews); // 모든 뉴스 표시
-        displaySentimentCounts(positiveCount, negativeCount, neutralCount); // 감성 카운트 업데이트
-
     } catch (error) {
         console.error("전체 프로세스 에러:", error);
         newsListContainer.innerHTML = `<p class="text-center text-red-500 py-10">오류 발생: ${error.message}</p>`;
@@ -556,7 +632,12 @@ function getNewsCompany(link) {
 
 // 페이지 로드 시 초기화 및 이벤트 리스너 추가
 document.addEventListener('DOMContentLoaded', () => {
-    loadData(); // 초기 데이터 로드 (현재는 빈 값으로 시작)
+    loadData(); 
+    
+    // 검색 버튼 클릭 이벤트 리스너 (processSearchResults 호출로 변경)
+    document.getElementById('search-button').addEventListener('click', () => {
+        processSearchResults();
+    });
 
     // 검색 입력 필드에 엔터키 이벤트 리스너 추가
     if (searchInput) {
