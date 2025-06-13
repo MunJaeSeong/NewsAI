@@ -130,7 +130,7 @@ async function searchNews() {
 
     try {
         // 1. 검색 API 호출
-        const searchResponse = await fetch('/api/search/', { // main.py에서 prefix가 /api/search로 변경됨
+        const searchResponse = await fetch('/search/', { // prefix에서 /api 삭제됨
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ query: query })
@@ -155,7 +155,7 @@ async function searchNews() {
         const pubDates = newsItems.map(item => item.pubDate);
 
         // 2. 요약 API 호출 (모든 description을 한 번에 전송)
-        const summarizeResponse = await fetch('/api/summarize/multiple', { // main.py에서 prefix가 /api/summarize로 변경됨
+        const summarizeResponse = await fetch('/summarize/multiple', { // prefix에서 /api 삭제됨
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ texts: descriptions })
@@ -189,7 +189,7 @@ async function searchNews() {
 
             if (summaryText) {
                 try {
-                    const sentimentResponse = await fetch('/api/sentiment/analyze', { // main.py에서 prefix가 /api/sentiment로 변경됨
+                    const sentimentResponse = await fetch('/sentiment/analyze', { // prefix에서 /api 삭제됨
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ text: summaryText })

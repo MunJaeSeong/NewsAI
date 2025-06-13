@@ -66,16 +66,11 @@ async def startup_event():
 # -----------------------------------
 
 # 라우터 연결 (API 경로를 /api/{기능} 형태로 구성)
-app.include_router(search_router.router, prefix="/api/search", tags=["Search"])
-app.include_router(summation_router.router, prefix="/api/summarize", tags=["Summation"])
-app.include_router(sentiment_router.router, prefix="/api/sentiment", tags=["Sentiment Analysis"])
+app.include_router(search_router.router, prefix="/search", tags=["Search"])
+app.include_router(summation_router.router, prefix="/summarize", tags=["Summation"])
+app.include_router(sentiment_router.router, prefix="/sentiment", tags=["Sentiment Analysis"])
 
 # 루트 경로 ("/")로 접속 시 index.html 파일을 렌더링하여 반환
 @app.get("/")
 async def read_root(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
-
-if __name__ == '__main__':
-    print("뉴스 분석 AI 서비스 시작 준비 중...")
-    print("http://localhost:8000 에서 확인하세요")
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
