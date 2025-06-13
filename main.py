@@ -17,14 +17,18 @@ NewsMind AI - 뉴스 분석 웹 애플리케이션
 """
 
 from fastapi import FastAPI, Request
-from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import JSONResponse
+from pydantic import BaseModel
+from typing import Optional, List, Dict, Any
+import os
 import uvicorn
 from dotenv import load_dotenv
-import os # os 모듈 임포트 추가
+import json
 
-# routers 디렉토리에서 라우터들을 임포트
-from routers import search_router, sentiment_router, summation_router
+# 라우터 임포트
+from routers import search_router, summation_router, sentiment_router, auth_router
 # services 디렉토리에서 서비스들을 임포트
 from services import search_service, sentiment_service, summation_service
 
@@ -66,11 +70,29 @@ async def startup_event():
 # -----------------------------------
 
 # 라우터 연결 (API 경로를 /api/{기능} 형태로 구성)
-app.include_router(search_router.router, prefix="/search", tags=["Search"])
-app.include_router(summation_router.router, prefix="/summarize", tags=["Summation"])
-app.include_router(sentiment_router.router, prefix="/sentiment", tags=["Sentiment Analysis"])
+app.include_router(search_router.router, prefix="/api/search", tags=["Search"])
+app.include_router(summation_router.router, prefix="/api/summarize", tags=["Summation"])
+app.include_router(sentiment_router.router, prefix="/api/sentiment", tags=["Sentiment Analysis"])
+app.include_router(auth_router.router, tags=["Authentication"])
 
 # 루트 경로 ("/")로 접속 시 index.html 파일을 렌더링하여 반환
 @app.get("/")
 async def read_root(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
+
+@app.get("/news/{news_id}")
+async def read_news_detail(request: Request, news_id: int):
+    """
+    뉴스 상세 페이지를 렌더링합니다.
+    클라이언트 사이드에서 세션 스토리지에서 데이터를 가져와 표시합니다.
+    """
+    return templates.TemplateResponse("news_detail.html", {
+        "request": request,
+        "news_id": news_id
+    })
+
+
+if __name__ == '__main__':
+    print("뉴스 분석 AI 서비스 시작 준비 중...")
+    print("http://localhost:8000 에서 확인하세요")
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
