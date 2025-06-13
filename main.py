@@ -21,6 +21,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 import uvicorn
 from dotenv import load_dotenv
+from routers import url_router
 import os # os 모듈 임포트 추가
 
 # routers 디렉토리에서 라우터들을 임포트
@@ -69,6 +70,7 @@ async def startup_event():
 app.include_router(search_router.router, prefix="/search", tags=["Search"])
 app.include_router(summation_router.router, prefix="/summarize", tags=["Summation"])
 app.include_router(sentiment_router.router, prefix="/sentiment", tags=["Sentiment Analysis"])
+app.include_router(url_router.router, prefix="/url", tags=["URL Fetch"])
 
 # 루트 경로 ("/")로 접속 시 index.html 파일을 렌더링하여 반환
 @app.get("/")
