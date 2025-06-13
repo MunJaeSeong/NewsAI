@@ -15,31 +15,83 @@ NewsMind AI - 뉴스 분석 웹 애플리케이션
    - 감성별 뉴스 개수 표시
 """
 
-from pathlib import Path
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
+from fastapi.responses import JSONResponse
+from pydantic import BaseModel
+from typing import Optional, List, Dict, Any
+import os
 import uvicorn
-from router import router, Request
-from fastapi.responses import HTMLResponse
+from dotenv import load_dotenv
+import json
+
+# 라우터 임포트
+from routers import search_router, summation_router, sentiment_router, auth_router
+# services 디렉토리에서 서비스들을 임포트
+from services import search_service, sentiment_service, summation_service
+
+load_dotenv() # .env 파일 로드
 
 app = FastAPI(title="NewsMind AI", description="뉴스 분석 AI 서비스")
 
-# 라우터 연결
-app.include_router(router)
+# 정적 파일 설정
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
-# 정적 파일 서빙 설정
-# app.mount("/static", StaticFiles(directory="static"), name="static")
+# Jinja2 템플릿 설정 (templates 폴더를 HTML 템플릿 디렉토리로 지정)
+templates = Jinja2Templates(directory="templates")
 
+# --- FastAPI 앱 시작 시 모델 로드 ---
+@app.on_event("startup")
+async def startup_event():
+    print("FastAPI 앱 시작 이벤트 감지: 모델 로드 시작...")
+    try:
+        # 서비스 파일에 정의된 모델 로드 함수 호출
+        # (각 서비스 파일에 load_XXX_model() 함수가 정의되어 있다고 가정)
+        # search_service에는 모델 로드가 필요 없을 수 있습니다.
+        if hasattr(summation_service, 'load_summarization_model'):
+            summation_service.load_summarization_model()
+        if hasattr(sentiment_service, 'load_sentiment_model'):
+            sentiment_service.load_sentiment_model()
+            
+        # 네이버 API 키 환경 변수 확인
+        client_id = os.getenv("YOUR_CLIENT_ID")
+        client_secret = os.getenv("YOUR_CLIENT_SECRET")
+        if not client_id or not client_secret:
+            print("경고: 네이버 API 클라이언트 ID 또는 시크릿이 .env 파일에 설정되지 않았습니다.")
+            print("검색 기능이 정상적으로 작동하지 않을 수 있습니다.")
+        else:
+            print("네이버 API 인증 정보 확인 완료.")
+
+        print("모든 초기화 및 모델 로드 완료.")
+    except Exception as e:
+        print(f"초기화 또는 모델 로드 실패: {e}. 서버가 제대로 작동하지 않을 수 있습니다.")
+# -----------------------------------
+
+# 라우터 연결 (API 경로를 /api/{기능} 형태로 구성)
+app.include_router(search_router.router, prefix="/api/search", tags=["Search"])
+app.include_router(summation_router.router, prefix="/api/summarize", tags=["Summation"])
+app.include_router(sentiment_router.router, prefix="/api/sentiment", tags=["Sentiment Analysis"])
+app.include_router(auth_router.router, tags=["Authentication"])
+
+# 루트 경로 ("/")로 접속 시 index.html 파일을 렌더링하여 반환
+@app.get("/")
 async def read_root(request: Request):
+    return templates.TemplateResponse("index.html", {"request": request})
+
+@app.get("/news/{news_id}")
+async def read_news_detail(request: Request, news_id: int):
     """
-    루트 경로에 대한 GET 요청을 처리합니다.
-    기본 HTML 페이지를 반환합니다.
+    뉴스 상세 페이지를 렌더링합니다.
+    클라이언트 사이드에서 세션 스토리지에서 데이터를 가져와 표시합니다.
     """
-    # HTML 파일 경로 설정
-    html_file_path = Path(__file__).parent / "index.html"
-    
-    # HTML 파일 읽기
-    with open(html_file_path, "r", encoding="utf-8") as file:
-        content = file.read()
-    
-    return HTMLResponse(content=content)
+    return templates.TemplateResponse("news_detail.html", {
+        "request": request,
+        "news_id": news_id
+    })
+
+
+if __name__ == '__main__':
+    print("뉴스 분석 AI 서비스 시작 준비 중...")
+    print("http://localhost:8000 에서 확인하세요")
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
