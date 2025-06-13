@@ -1,3 +1,4 @@
+# NEWSIAI/main.py
 """
 NewsMind AI - 뉴스 분석 웹 애플리케이션
 
