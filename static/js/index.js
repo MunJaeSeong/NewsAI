@@ -51,10 +51,14 @@ function displayNews(news) {
     `).join('');
 }
 
-// 뉴스 카드 클릭 시 동작 함수 (예시: 전체 정보 alert)
+// 뉴스 카드 클릭 시 동작 함수 (해당 뉴스의 원본 URL 새 창으로 열기)
 function onNewsClick(idx) {
     const item = allNews[idx];
-    alert(`제목: ${item.title}\n회사: ${item.company}\n날짜: ${item.published_date}\n요약: ${item.summary}`);
+    if (item.url) {
+        window.open(item.url, '_blank');
+    } else {
+        alert(`원본 뉴스 URL이 없습니다.\n제목: ${item.title}\n회사: ${item.company}\n날짜: ${item.published_date}\n요약: ${item.summary}`);
+    }
 }
 
 /**
@@ -281,7 +285,8 @@ async function searchNews() {
                 title: newsTitle.replace(/<\/?b>/g, ''), // 제목에서 <b> 태그 제거
                 summary: summaryText || originalText.replace(/<\/?b>/g, ''), // 요약 없으면 원문 사용 (<b> 태그 제거)
                 published_date: new Date(newsPubDate).toLocaleDateString(), // 발행일 포맷팅
-                sentiment_category: sentimentCategory // 필터링을 위한 카테고리
+                sentiment_category: sentimentCategory, // 필터링을 위한 카테고리
+                url: newsLink // 원본 뉴스 링크 추가
             });
         }
 
