@@ -39,8 +39,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 body: JSON.stringify({ username, password, email, name })
             });
             const result = await response.json();
-            if (result.success) {
-                alert(result.message);
+            if (result.id || result.username) {
+                alert('회원가입이 완료되었습니다.');
                 window.location.href = '/login';
             } else {
                 alert('회원가입에 실패했습니다: ' + (result.detail || '알 수 없는 오류'));
