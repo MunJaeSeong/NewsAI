@@ -82,3 +82,11 @@ app.include_router(user_router.router, prefix="/users", tags=["Users"])
 @app.get("/")
 async def read_root(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
+
+@app.get("/login")
+async def login_page(request: Request):
+    return templates.TemplateResponse("login.html", {"request": request})
+
+@app.get("/signup")
+async def signup_page(request: Request):
+    return templates.TemplateResponse("signup.html", {"request": request})
