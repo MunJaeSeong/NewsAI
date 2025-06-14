@@ -14,9 +14,6 @@ const neutralCountElement = document.getElementById('neutral-count');
  * 초기 데이터 로드 함수 (API 호출로 대체)
  */
 async function loadData() {
-    // 페이지 로드 시에는 API 호출을 하지 않고, 검색 버튼 클릭 시 호출하도록 변경.
-    // 따라서 이 함수는 빈 상태로 두거나 제거해도 무방합니다.
-    // 기존의 sampleNews는 더 이상 사용되지 않습니다.
     displayNews([]); // 초기에는 뉴스 목록을 비워둡니다.
     displaySentimentCounts(0, 0, 0); // 초기 감성 카운트도 0으로 설정
 }
@@ -121,7 +118,7 @@ function getSentimentText(sentiment) {
 // 로그인 상태 확인 함수
 async function checkLoginStatus() {
     try {
-        const response = await fetch('/api/check-login');
+        const response = await fetch('/check-login');
         const data = await response.json();
         
         const authButtons = document.getElementById('auth-buttons');
@@ -146,7 +143,7 @@ async function checkLoginStatus() {
 // 로그아웃 처리 함수
 async function handleLogout() {
     try {
-        const response = await fetch('/api/logout', {
+        const response = await fetch('/logout', {
             method: 'POST',
         });
         const result = await response.json();

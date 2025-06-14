@@ -80,20 +80,3 @@ app.include_router(url_router.router, prefix="/url", tags=["URL Fetch"])
 @app.get("/")
 async def read_root(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
-
-@app.get("/news/{news_id}")
-async def read_news_detail(request: Request, news_id: int):
-    """
-    뉴스 상세 페이지를 렌더링합니다.
-    클라이언트 사이드에서 세션 스토리지에서 데이터를 가져와 표시합니다.
-    """
-    return templates.TemplateResponse("news_detail.html", {
-        "request": request,
-        "news_id": news_id
-    })
-
-
-if __name__ == '__main__':
-    print("뉴스 분석 AI 서비스 시작 준비 중...")
-    print("http://localhost:8000 에서 확인하세요")
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
