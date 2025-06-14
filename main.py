@@ -22,15 +22,12 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from typing import Optional, List, Dict, Any
-import os
 import uvicorn
 from dotenv import load_dotenv
-from routers import url_router
 import os # os 모듈 임포트 추가
-from routers import user_router
 
 # 라우터 임포트
-from routers import search_router, summation_router, sentiment_router, auth_router
+from routers import search_router, summation_router, sentiment_router, url_router, user_router
 # services 디렉토리에서 서비스들을 임포트
 from services import search_service, sentiment_service, summation_service
 
