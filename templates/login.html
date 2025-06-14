@@ -152,32 +152,7 @@
                 });
             });
         });
-
-        // 폼 제출 처리
-        document.getElementById('loginForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const formData = new FormData(this);
-            
-            try {
-                const response = await fetch('/api/login', {
-                    method: 'POST',
-                    body: formData
-                });
-                
-                const result = await response.json();
-                
-                if (result.success) {
-                    // 로그인 성공 시 메인 페이지로 리다이렉트
-                    window.location.href = '/';
-                } else {
-                    alert('로그인 실패: ' + (result.detail || '아이디 또는 비밀번호를 확인해주세요.'));
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                alert('로그인 처리 중 오류가 발생했습니다.');
-            }
-        });
     </script>
+    <script src="/static/js/login.js"></script>
 </body>
 </html>
