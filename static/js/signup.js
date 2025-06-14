@@ -23,17 +23,20 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('signupForm').addEventListener('submit', async function(e) {
         e.preventDefault();
         // 비밀번호 확인
+        const username = document.getElementById('username').value;
         const password = document.getElementById('password').value;
         const passwordConfirm = document.getElementById('password_confirm').value;
+        const email = document.getElementById('email').value;
+        const name = document.getElementById('name').value;
         if (password !== passwordConfirm) {
             alert('비밀번호가 일치하지 않습니다.');
             return;
         }
         try {
-            const formData = new FormData(this);
             const response = await fetch('/users/register', {
                 method: 'POST',
-                body: formData
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password, email, name })
             });
             const result = await response.json();
             if (result.success) {

@@ -22,11 +22,13 @@ document.addEventListener('DOMContentLoaded', function() {
     // 폼 제출 처리
     document.getElementById('loginForm').addEventListener('submit', async function(e) {
         e.preventDefault();
-        const formData = new FormData(this);
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
         try {
             const response = await fetch('/users/login', {
                 method: 'POST',
-                body: formData
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password })
             });
             const result = await response.json();
             if (result.success) {
