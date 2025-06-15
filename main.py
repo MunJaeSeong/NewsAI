@@ -16,7 +16,7 @@ NewsMind AI - 뉴스 분석 웹 애플리케이션
    - 감성별 뉴스 개수 표시
 """
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, Cookie
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import JSONResponse
@@ -87,3 +87,14 @@ async def login_page(request: Request):
 @app.get("/signup")
 async def signup_page(request: Request):
     return templates.TemplateResponse("signup.html", {"request": request})
+
+@app.get("/check-login")
+async def check_login(request: Request, username: str = Cookie(default=None)):
+    """
+    로그인 상태를 확인하는 엔드포인트. (쿠키에 username이 있으면 로그인된 것으로 간주)
+    실제 구현에 맞게 세션/쿠키/토큰 확인 로직을 수정하세요.
+    """
+    if username:
+        return {"loggedIn": True, "username": username}
+    else:
+        return {"loggedIn": False}
