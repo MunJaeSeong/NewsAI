@@ -32,7 +32,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
             const result = await response.json();
             if (result.id || result.username) {
-                window.location.href = '/index.html';
+                window.location.href = '/';
             } else {
                 alert('로그인 실패: ' + (result.detail || '아이디 또는 비밀번호를 확인해주세요.'));
             }

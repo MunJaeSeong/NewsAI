@@ -40,7 +40,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
             const result = await response.json();
             if (result.id || result.username) {
-                window.location.href = '/login.html';
+                window.location.href = '/login';
             } else {
                 alert('회원가입에 실패했습니다: ' + (result.detail || '알 수 없는 오류'));
             }
