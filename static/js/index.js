@@ -300,6 +300,7 @@ async function searchNews() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+    checkLoginStatus(); // 로그인 상태 확인 및 UI 업데이트
     loadData(); // 초기 데이터 로드 (현재는 빈 값으로 시작)
 
     // 검색 입력 필드에 엔터키 이벤트 리스너 추가
@@ -310,5 +311,5 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // 검색 버튼 클릭 이벤트 리스너
-    document.querySelector('button[onclick="searchNews()"]').addEventListener('click', searchNews);
+    document.querySelector('button[onclick="searchNews()"]')?.addEventListener('click', searchNews);
 });
