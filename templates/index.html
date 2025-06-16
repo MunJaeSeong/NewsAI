@@ -43,6 +43,14 @@ NewsMind AI - 뉴스 분석 서비스 프론트엔드
             <div class="max-w-7xl mx-auto px-4 py-4">
                 <div class="flex justify-between items-center">
                     <h1 class="text-2xl font-bold text-blue-600">NewsMind AI</h1>
+                    <div id="auth-buttons" class="flex items-center">
+                        <a href="/login" class="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium">로그인</a>
+                        <a href="/signup" class="bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700">회원가입</a>
+                    </div>
+                    <div id="user-info" class="hidden items-center">
+                        <span id="username-display" class="text-gray-700 mr-4"></span>
+                        <button onclick="handleLogout()" class="text-gray-700 hover:text-blue-600 px-3 py-2 text-sm font-medium">로그아웃</button>
+                    </div>
                 </div>
             </div>
         </header>
