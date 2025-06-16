@@ -22,14 +22,18 @@ document.addEventListener('DOMContentLoaded', function() {
     // 폼 제출 처리
     document.getElementById('loginForm').addEventListener('submit', async function(e) {
         e.preventDefault();
-        const formData = new FormData(this);
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
         try {
             const response = await fetch('/users/login', {
                 method: 'POST',
-                body: formData
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password })
             });
             const result = await response.json();
-            if (result.success) {
+            if (result.id || result.username) {
+                // 로그인 성공 시 name을 localStorage에 저장
+                localStorage.setItem('username', result.name);
                 window.location.href = '/';
             } else {
                 alert('로그인 실패: ' + (result.detail || '아이디 또는 비밀번호를 확인해주세요.'));
