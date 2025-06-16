@@ -14,9 +14,6 @@ const neutralCountElement = document.getElementById('neutral-count');
  * 초기 데이터 로드 함수 (API 호출로 대체)
  */
 async function loadData() {
-    // 페이지 로드 시에는 API 호출을 하지 않고, 검색 버튼 클릭 시 호출하도록 변경.
-    // 따라서 이 함수는 빈 상태로 두거나 제거해도 무방합니다.
-    // 기존의 sampleNews는 더 이상 사용되지 않습니다.
     displayNews([]); // 초기에는 뉴스 목록을 비워둡니다.
     displaySentimentCounts(0, 0, 0); // 초기 감성 카운트도 0으로 설정
 }
@@ -37,9 +34,8 @@ function displayNews(news) {
         container.innerHTML = '<p class="text-center text-gray-500 py-10">검색 결과가 없습니다. 새로운 검색어를 입력해주세요.</p>';
         return;
     }
-
-    container.innerHTML = sortedNews.map(item => `
-        <div class="bg-white rounded-lg shadow p-6 mb-4">
+    container.innerHTML = sortedNews.map((item, idx) => `
+        <div class="bg-white rounded-lg shadow p-6 mb-4 cursor-pointer" onclick="onNewsClick(${idx})">
             <div class="flex justify-between items-start mb-3">
                 <h3 class="font-semibold text-gray-900">${item.company}</h3>
                 <span class="px-2 py-1 text-xs rounded-full ${getSentimentColor(item.sentiment_category)}">
@@ -53,6 +49,16 @@ function displayNews(news) {
             </div>
         </div>
     `).join('');
+}
+
+// 뉴스 카드 클릭 시 동작 함수 (해당 뉴스의 원본 URL 새 창으로 열기)
+function onNewsClick(idx) {
+    const item = allNews[idx];
+    if (item.url) {
+        window.open(item.url, '_blank');
+    } else {
+        alert(`원본 뉴스 URL이 없습니다.\n제목: ${item.title}\n회사: ${item.company}\n날짜: ${item.published_date}\n요약: ${item.summary}`);
+    }
 }
 
 /**
@@ -113,6 +119,30 @@ function getSentimentText(sentiment) {
         case 'neutral': return '중립적'; // 중립도 명시적으로 추가
         default: return '알 수 없음';
     }
+}
+
+// 로그인 상태 확인 함수 (localStorage 기반)
+function checkLoginStatus() {
+    const username = localStorage.getItem('username');
+    const authButtons = document.getElementById('auth-buttons');
+    const userInfo = document.getElementById('user-info');
+    const usernameDisplay = document.getElementById('username-display');
+    if (username) {
+        authButtons.classList.add('hidden');
+        userInfo.classList.remove('hidden');
+        usernameDisplay.textContent = username;
+    } else {
+        authButtons.classList.remove('hidden');
+        userInfo.classList.add('hidden');
+        usernameDisplay.textContent = '';
+    }
+}
+
+// 로그아웃 처리 함수 (localStorage 기반)
+function handleLogout() {
+    localStorage.removeItem('username');
+    // index.html로 이동 후 새로고침
+    window.location.href = '/';
 }
 
 /**
@@ -232,7 +262,8 @@ async function searchNews() {
                 title: newsTitle.replace(/<\/?b>/g, ''), // 제목에서 <b> 태그 제거
                 summary: summaryText || originalText.replace(/<\/?b>/g, ''), // 요약 없으면 원문 사용 (<b> 태그 제거)
                 published_date: new Date(newsPubDate).toLocaleDateString(), // 발행일 포맷팅
-                sentiment_category: sentimentCategory // 필터링을 위한 카테고리
+                sentiment_category: sentimentCategory, // 필터링을 위한 카테고리
+                url: newsLink // 원본 뉴스 링크 추가
             });
         }
 
@@ -245,8 +276,8 @@ async function searchNews() {
     }
 }
 
-// 페이지 로드 시 초기화
 document.addEventListener('DOMContentLoaded', () => {
+    checkLoginStatus(); // localStorage 기반 로그인 상태 확인 및 UI 업데이트
     loadData(); // 초기 데이터 로드 (현재는 빈 값으로 시작)
 
     // 검색 입력 필드에 엔터키 이벤트 리스너 추가
@@ -257,5 +288,5 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // 검색 버튼 클릭 이벤트 리스너
-    document.querySelector('button[onclick="searchNews()"]').addEventListener('click', searchNews);
+    document.querySelector('button[onclick="searchNews()"]')?.addEventListener('click', searchNews);
 });

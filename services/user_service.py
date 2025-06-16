@@ -16,15 +16,25 @@ def hash_password(password: str) -> str:
 def verify_password(password: str, hashed: str) -> bool:
     return bcrypt.checkpw(password.encode("utf-8"), hashed.encode("utf-8"))
 
-def register_user(email: str, password: str):
+def register_user(username: str, password: str, email: str, name: str):
     hashed = hash_password(password)
-    return supabase.table("users").insert({"email": email, "password": hashed}).execute()
+    return supabase.table("users").insert({
+        "username": username,
+        "password": hashed,
+        "email": email,
+        "name": name
+    }).execute()
 
-def login_user(email: str, password: str):
-    result = supabase.table("users").select("*").eq("email", email).single().execute()
+def login_user(username: str, password: str):
+    result = supabase.table("users").select("*").eq("username", username).single().execute()
     user = result.data
     if not user:
         return None
     if verify_password(password, user["password"]):
-        return {"id": user["id"], "email": user["email"]}
+        return {
+            "id": user["id"],
+            "username": user["username"],
+            "email": user["email"],
+            "name": user["name"]
+        }
     return None
