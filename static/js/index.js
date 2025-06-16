@@ -118,54 +118,31 @@ function getSentimentText(sentiment) {
         case 'negative': return '부정적';
         case 'neutral': return '중립적'; // 중립도 명시적으로 추가
         default: return '알 수 없음';
-
-// 로그인 상태 확인 함수
-async function checkLoginStatus() {
-    try {
-        const response = await fetch('/check-login');
-        const data = await response.json();
-        
-        const authButtons = document.getElementById('auth-buttons');
-        const userInfo = document.getElementById('user-info');
-        const usernameDisplay = document.getElementById('username-display');
-        
-        if (data.loggedIn) {
-            // 로그인된 상태
-            authButtons.classList.add('hidden');
-            userInfo.classList.remove('hidden');
-            usernameDisplay.textContent = data.username;
-        } else {
-            // 로그인되지 않은 상태
-            authButtons.classList.remove('hidden');
-            userInfo.classList.add('hidden');
-        }
-    } catch (error) {
-        console.error('로그인 상태 확인 중 오류 발생:', error);
     }
 }
 
-// 로그아웃 처리 함수
-async function handleLogout() {
-    try {
-        const response = await fetch('/logout', {
-            method: 'POST',
-        });
-        const result = await response.json();
-        
-        if (result.success) {
-            // 로그아웃 성공 시 로그인 페이지로 리다이렉트
-            window.location.href = '/login';
-        } else {
-            alert('로그아웃에 실패했습니다.');
-        }
-    } catch (error) {
-        console.error('로그아웃 중 오류 발생:', error);
-        alert('로그아웃 처리 중 오류가 발생했습니다.');
+// 로그인 상태 확인 함수 (localStorage 기반)
+function checkLoginStatus() {
+    const username = localStorage.getItem('username');
+    const authButtons = document.getElementById('auth-buttons');
+    const userInfo = document.getElementById('user-info');
+    const usernameDisplay = document.getElementById('username-display');
+    if (username) {
+        authButtons.classList.add('hidden');
+        userInfo.classList.remove('hidden');
+        usernameDisplay.textContent = username;
+    } else {
+        authButtons.classList.remove('hidden');
+        userInfo.classList.add('hidden');
+        usernameDisplay.textContent = '';
     }
 }
 
-
-    }
+// 로그아웃 처리 함수 (localStorage 기반)
+function handleLogout() {
+    localStorage.removeItem('username');
+    // index.html로 이동 후 새로고침
+    window.location.href = '/';
 }
 
 /**
@@ -300,7 +277,7 @@ async function searchNews() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    checkLoginStatus(); // 로그인 상태 확인 및 UI 업데이트
+    checkLoginStatus(); // localStorage 기반 로그인 상태 확인 및 UI 업데이트
     loadData(); // 초기 데이터 로드 (현재는 빈 값으로 시작)
 
     // 검색 입력 필드에 엔터키 이벤트 리스너 추가

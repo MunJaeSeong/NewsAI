@@ -32,6 +32,8 @@ document.addEventListener('DOMContentLoaded', function() {
             });
             const result = await response.json();
             if (result.id || result.username) {
+                // 로그인 성공 시 name을 localStorage에 저장
+                localStorage.setItem('username', result.name);
                 window.location.href = '/';
             } else {
                 alert('로그인 실패: ' + (result.detail || '아이디 또는 비밀번호를 확인해주세요.'));
