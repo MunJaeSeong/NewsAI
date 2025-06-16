@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException
-from schemas.sentiment import TextInput, SentimentResponse # 스키마 임포트
+from schemas.sentiment_schema import TextInput, SentimentResponse # 스키마 임포트
 from services import sentiment_service # 서비스 임포트
 
 router = APIRouter()

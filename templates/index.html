@@ -36,29 +36,28 @@ NewsMind AI - 뉴스 분석 서비스 프론트엔드
     <title>NewsMind AI - 뉴스 분석 서비스</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
-    <script src="/static/js/index.js"></script>
-</head>
+    </head>
 <body class="bg-gray-100">
     <div id="app" class="min-h-screen">
         <header class="bg-white shadow-sm">
             <div class="max-w-7xl mx-auto px-4 py-4">
                 <div class="flex justify-between items-center">
                     <h1 class="text-2xl font-bold text-blue-600">NewsMind AI</h1>
+                    <div id="auth-buttons" class="flex items-center">
+                        <a href="/login" class="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium">로그인</a>
+                        <a href="/signup" class="bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700">회원가입</a>
+                    </div>
+                    <div id="user-info" class="hidden items-center">
+                        <span id="username-display" class="text-gray-700 mr-4"></span>
+                        <button onclick="handleLogout()" class="text-gray-700 hover:text-blue-600 px-3 py-2 text-sm font-medium">로그아웃</button>
+                    </div>
                 </div>
             </div>
         </header>
         
         <main class="max-w-7xl mx-auto px-4 py-8">
             <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
-                <!-- 사이드바 -->
                 <div class="lg:col-span-1">
-                    <!-- 검색 기록 섹션 주석 처리
-                    <div class="bg-white rounded-lg shadow p-6 mb-6">
-                        <h2 class="text-lg font-semibold mb-4">검색 기록</h2>
-                        <div id="search-history-list"></div>
-                    </div>
-                    -->
-                    
                     <div class="bg-white rounded-lg shadow p-6">
                         <h3 class="text-lg font-semibold mb-4">분석 정리</h3>
                         <div class="space-y-4">
@@ -91,7 +90,6 @@ NewsMind AI - 뉴스 분석 서비스 프론트엔드
                     </div>
                 </div>
                 
-                <!-- 메인 컨텐츠 -->
                 <div class="lg:col-span-3">
                     <div class="bg-white rounded-lg shadow p-6 mb-6">
                         <div class="flex gap-2">
@@ -108,5 +106,7 @@ NewsMind AI - 뉴스 분석 서비스 프론트엔드
             </div>
         </main>
     </div>
+
+    <script src="/static/js/index.js"></script>
 </body>
 </html>
